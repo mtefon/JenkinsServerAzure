@@ -134,33 +134,32 @@ resource "azurerm_role_assignment" "role_assignment" {
 ###########################
 #   NSG and Association   #
 ###########################
+locals {
+  inbound_ports_map = {
+    "100" : "22", # If the key starts with a number, you must use the colon syntax ":" instead of "="
+    "110" : "8080"
+  }
+}
+
 resource "azurerm_network_security_group" "nsg" {
-  name                = "AllowSSHand8080"
+  name                = "${var.prefix}-nsg"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
-  security_rule {
-    name                       = "AllowSSH"
-    priority                   = 100
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "22"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-  }
-
-  security_rule {
-    name                       = "Allow8080"
-    priority                   = 110
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "8080"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
+  dynamic "security_rule" {
+    for_each = local.inbound_ports_map
+    iterator = item
+    content {
+      name                       = "Allow-${item.value}"
+      priority                   = item.key
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Tcp"
+      source_port_range          = "*"
+      destination_port_range     = item.value
+      source_address_prefix      = "*"
+      destination_address_prefix = "*"
+    }
   }
 }
 
