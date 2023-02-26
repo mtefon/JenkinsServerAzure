@@ -71,7 +71,7 @@ resource "azurerm_virtual_machine" "vm" {
   os_profile {
     computer_name  = var.prefix
     admin_username = var.admin_username
-    custom_data    = data.template_file.userdata.rendered
+    custom_data    = data.template_file.customdata.rendered
   }
 
   os_profile_linux_config {
@@ -88,6 +88,9 @@ resource "azurerm_network_interface" "nic" {
   name                = "${var.prefix}-nic"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
+  depends_on = [
+    azurerm_public_ip.pip
+  ]
 
   ip_configuration {
     name                          = "IPConfiguration"
@@ -164,4 +167,8 @@ resource "azurerm_network_security_group" "nsg" {
 resource "azurerm_network_interface_security_group_association" "nic_association" {
   network_interface_id      = azurerm_network_interface.nic.id
   network_security_group_id = azurerm_network_security_group.nsg.id
+  depends_on = [
+    azurerm_network_interface.nic,
+    azurerm_network_security_group.nsg
+  ]
 }
