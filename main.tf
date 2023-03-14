@@ -127,7 +127,7 @@ data "azurerm_subscription" "primary" {
 
 resource "azurerm_role_assignment" "role_assignment" {
   scope                = data.azurerm_subscription.primary.id
-  role_definition_name = "Contributor"
+  role_definition_name = "Owner"
   principal_id         = azurerm_user_assigned_identity.identity.principal_id
 }
 
